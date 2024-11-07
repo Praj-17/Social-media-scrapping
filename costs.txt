@@ -1,0 +1,4 @@
+apify/instagram-scraper - $2.3 for 1000 results
+curious_coder/linkedin-post-search-scraper - $30 /- month
+apify/facebook-posts-scraper - $35/- month
+quacker/twitter-scraper - $3.5 for 1000 results
