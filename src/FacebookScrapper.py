@@ -4,7 +4,6 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from utils import get_date_7_days_before_today
 class FacebookPostScraper:
     def __init__(self, api_token):
         """

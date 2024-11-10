@@ -7,6 +7,10 @@ from dotenv import load_dotenv
 from src import get_date_7_days_before_today
 from datetime import datetime, timezone
 import re
+from src import GeminiRunnerClass
+import asyncio 
+import json
+
 load_dotenv()
 
 
@@ -87,8 +91,10 @@ if __name__ == "__main__":
         # "linkedin_username": "prajwal-waykos",
         "x_username": "elonmusk"
     }
-    output = sm.scrape_all_social_media(**handles)
-    import json
+    data = sm.scrape_all_social_media(**handles)
 
-    with open("output.json", "w+") as f:
-        json.dump(output, f)
+    gem = GeminiRunnerClass()
+    prompt = "You are an expert in delivering quality image captions for the given images,you describe details of of what the person in the image is doing and try to describe his personality traits , interest areas and experiences in a story "
+
+    output = asyncio.run(gem.get_gemini_response_image(prompt, data))
+    print(output)

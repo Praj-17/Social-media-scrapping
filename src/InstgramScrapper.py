@@ -1,6 +1,5 @@
 import re
 from apify_client import ApifyClient
-from utils import get_date_7_days_before_today
 import os
 import json
 from dotenv import load_dotenv

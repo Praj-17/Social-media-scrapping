@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 import PIL
 from PIL import Image
-from utils import download_file
+from .utils import download_file
 from pillow_heif import register_heif_opener
 import numpy as np
 import time
@@ -102,7 +102,7 @@ class GeminiRunnerClass:
     async def get_gemini_response_image(self, input_text: str, image_parts_list: list) -> str:
         self.model = GenerativeModel(os.getenv('GEMINI_IMAGE_MODEL_NAME'))
         images = []
-        image_parts_list = await gem.process_image_parts_from_social_media(image_parts_list)
+        image_parts_list = await self.process_image_parts_from_social_media(image_parts_list)
         for image_part in image_parts_list:
             file_path = download_file(image_part['data'])
             img = Image.open(file_path)
@@ -142,7 +142,7 @@ class GeminiRunnerClass:
             raise HTTPException(status_code=500, detail="Error fetching Gemini response")
 if __name__ =="__main__":
     gem = GeminiRunnerClass()
-    prompt = "You are an expert in delivering quality image captions for the given images,you describe details of of what the person in the image is doing and try to describe his personality traits , interest areas and experiences in a story "
+    prompt = "You are an expert in delivering quality image captions for the given images,you describe details of of what the person in the image is doing and try to describe his personality traits , interest areas and experiences in a story limit your response to a single line per image"
     with open("output.json", "r") as f:
         data = json.loads(f.read())
     output = asyncio.run(gem.get_gemini_response_image(prompt, data))
