@@ -1,10 +1,10 @@
-from FacebookScrapper import FacebookPostScraper
-from InstgramScrapper import InstagramPostScraper
-from LinkedinScrapper import LinkedInPostScraper
-from XScrapper import XScraper
+from src  import FacebookPostScraper
+from src  import InstagramPostScraper
+from src  import LinkedInPostScraper
+from src  import XScraper
 import os
 from dotenv import load_dotenv
-from utils import get_date_7_days_before_today
+from src import get_date_7_days_before_today
 from datetime import datetime, timezone
 import re
 load_dotenv()
