@@ -2,6 +2,7 @@ import re
 from apify_client import ApifyClient
 from utils import get_date_7_days_before_today
 import os
+import json
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -16,12 +17,12 @@ class InstagramPostScraper:
             raise ValueError("API token must be provided.")
         self.client = ApifyClient(api_token)
 
-    def scrape_profile(self, username, results_limit=5, newer_than = get_date_7_days_before_today()):
+    def scrape_profile(self, username,newer_than = None,  max_n=5):
         """
         Scrapes posts from the given Instagram profile URL.
 
         :param profile_url: The URL of the Instagram profile to scrape.
-        :param results_limit: The maximum number of posts to retrieve.
+        :param max_n: The maximum number of posts to retrieve.
         :return: A list of dictionaries containing post type and content URLs.
         """
 
@@ -34,7 +35,7 @@ class InstagramPostScraper:
         run_input = {
             "directUrls": [profile_url],
             "resultsType": "posts",
-            "resultsLimit": results_limit,
+            "resultsLimit": max_n, # Quantity
             "proxyConfiguration": {
                 "useApifyProxy": True,
                 # Uncomment and specify proxy groups if needed
@@ -42,7 +43,7 @@ class InstagramPostScraper:
                 "searchType": "hashtag",
                 "searchLimit": 1,
             },
-            "onlyPostsNewerThan": newer_than
+            "onlyPostsNewerThan": newer_than # Date 
         }
 
         try:
@@ -53,7 +54,6 @@ class InstagramPostScraper:
             return None
 
         items = self.get_items(run)
-        print(items)
         outputs = self.process_items(items)
         return outputs
 
@@ -88,8 +88,14 @@ class InstagramPostScraper:
         """
         outputs = []
         for item in items:
+            timestamp = item.get("timestamp", None)
             output = self.get_required_data_for_user(item)
             if output:
+                timestamp = item.get("timestamp", None)
+                output['timestamp'] = timestamp
+                output['social_media'] = "instagram"
+                location = item.get("location", None)
+                output['location'] = location
                 outputs.append(output)
         return outputs
 
@@ -136,17 +142,20 @@ if __name__ == "__main__":
     scraper = InstagramPostScraper(api_token=os.getenv("APIFY_API_KEY"))
 
     # Provide the Instagram profile URL
-    profile_url = "elonmusk__official__"
+    profile_url = "steveyeun"
 
     # Scrape the profile
     try:
-        outputs = scraper.scrape_profile(profile_url, results_limit=2)
+        outputs = scraper.scrape_profile(profile_url, max_n=20)
         if outputs:
             for output in outputs:
                 print(output)
+            with open("insta_output_2.json", "w+") as f:
+                json.dump(outputs, f)
         else:
             print("No data retrieved.")
     except ValueError as ve:
         print(f"ValueError: {ve}")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
+

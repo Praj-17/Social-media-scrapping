@@ -16,12 +16,12 @@ class FacebookPostScraper:
             raise ValueError("API token must be provided.")
         self.client = ApifyClient(api_token)
 
-    def scrape_page_posts(self, fb_username, max_results=20,newer_than =get_date_7_days_before_today() ):
+    def scrape_page_posts(self, fb_username,newer_than =None,  max_n=20 ):
         """
         Scrapes posts from the given Facebook page URL.
 
         :param page_url: The URL of the Facebook page to scrape.
-        :param max_results: The maximum number of posts to retrieve.
+        :param max_n: The maximum number of posts to retrieve.
         :return: A list of dictionaries containing post details.
         """
         page_url = f'https://www.facebook.com/{fb_username}/'
@@ -32,8 +32,8 @@ class FacebookPostScraper:
         # Prepare the Actor input
         run_input = {
             "startUrls": [{"url": page_url}],
-            "resultsLimit": max_results,
-            "maxPosts": max_results,
+            "resultsLimit": max_n,
+            "maxPosts": max_n,
             "proxyConfiguration": {
                 "useApifyProxy": True,
                 # Uncomment and specify proxy groups if needed
@@ -85,6 +85,11 @@ class FacebookPostScraper:
         """
         posts = []
         for item in items:
+            output_format['social_media'] = "facebook"
+            timestamp = item.get("time", None)
+            location = item.get("location", None)
+            output_format['location'] = location
+            output_format['timestamp'] = timestamp
             if item.get("media", None):
                 media = item.get("media", None)
                 for me in media:
@@ -122,9 +127,9 @@ if __name__ == "__main__":
 
     # Scrape posts from a Facebook page
     page_url = 'humansofnewyork'
-    max_results = 20  # Specify the number of posts you want to retrieve
+    max_n = 20  # Specify the number of posts you want to retrieve
 
-    posts = scraper.scrape_page_posts(page_url, max_results, newer_than= "2024-01-01")
+    posts = scraper.scrape_page_posts(page_url, max_n, newer_than= "2024-01-01")
 
     print("Posts")
 

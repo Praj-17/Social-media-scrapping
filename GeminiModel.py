@@ -142,7 +142,7 @@ class GeminiRunnerClass:
             raise HTTPException(status_code=500, detail="Error fetching Gemini response")
 if __name__ =="__main__":
     gem = GeminiRunnerClass()
-    prompt = "You are an expert in delivering quality image captions for the given images,you describe details of of what the person in the image is doing and try to describe his personality, knowledge traits in a kind of story "
+    prompt = "You are an expert in delivering quality image captions for the given images,you describe details of of what the person in the image is doing and try to describe his personality traits , interest areas and experiences in a story "
     with open("output.json", "r") as f:
         data = json.loads(f.read())
     output = asyncio.run(gem.get_gemini_response_image(prompt, data))

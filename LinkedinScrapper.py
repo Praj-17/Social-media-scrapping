@@ -22,12 +22,12 @@ class LinkedInPostScraper:
         self.cookies = cookies
         self.types = ["image", "document"]
 
-    def scrape_profile_posts(self, username, max_results=10, newer_than = get_date_7_days_before_today()):
+    def scrape_profile_posts(self, username,newer_than = None,  max_n=10):
         """
         Scrapes public posts from the given LinkedIn profile URL.
 
         :param profile_url: The URL of the LinkedIn profile to scrape.
-        :param max_results: The maximum number of posts to retrieve.
+        :param max_n: The maximum number of posts to retrieve.
         :return: A list of dictionaries containing post details.
         """
         profile_url = f'https://www.linkedin.com/in/{username}'
@@ -38,8 +38,8 @@ class LinkedInPostScraper:
         # Prepare the actor input
         run_input = {
             "urls": [profile_url],
-            "maxPosts": max_results,
-            "resultsLimit": max_results,
+            "maxPosts": max_n,
+            "resultsLimit": max_n,
             "proxyConfiguration": {
                 "useApifyProxy": True,
                 # Uncomment and specify proxy groups if needed
@@ -103,6 +103,11 @@ class LinkedInPostScraper:
                 "type": content_type,
                 "content_urls": [],
             }
+                timestamp = item.get("postedAtISO", None)
+                output_format['timestamp'] = timestamp
+                output_format['social_media'] = "linkedin"
+                location = item.get("location", None)
+                output_format['location'] = location
                 if content_type == "image":
                     output_format['content_urls'] = item['images']
                 elif content_type == "document":
@@ -394,7 +399,7 @@ if __name__ == "__main__":
 
     # Scrape the profile posts
     try:
-        posts = scraper.scrape_profile_posts(profile_url, max_results=2)
+        posts = scraper.scrape_profile_posts(profile_url, max_n=2)
         if posts:
             for post in posts:
                 print(post)

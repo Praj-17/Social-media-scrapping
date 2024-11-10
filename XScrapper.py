@@ -15,12 +15,12 @@ class XScraper:
             raise ValueError("API token must be provided.")
         self.client = ApifyClient(api_token)
 
-    def scrape_tweets(self, twitter_handle, max_tweets=100, newer_than = get_date_7_days_before_today()):
+    def scrape_tweets(self, twitter_handle, newer_than = None, max_n=100 ):
         """
         Scrapes tweets from the given Twitter handle.
 
         :param twitter_handle: The Twitter handle of the user to scrape tweets from.
-        :param max_tweets: The maximum number of tweets to retrieve.
+        :param max_n: The maximum number of tweets to retrieve.
         :return: A list of dictionaries containing tweet details.
         """
         # Validate the Twitter handle
@@ -30,7 +30,7 @@ class XScraper:
         # Prepare the Actor input
         run_input = {
             "handles": [twitter_handle],
-            "tweetsDesired": max_tweets,
+            "tweetsDesired": max_n,
             "proxyConfig": { "useApifyProxy": True },
         }
 
@@ -80,12 +80,18 @@ class XScraper:
            output_format = {
                "type": "",
                "content_urls": []
+               
            }
+           output_format['social_media'] = "x"
+           timestamp = item.get("created_at", None)
+           location = item.get("location", None)
+           output_format['timestamp'] = timestamp
+           output_format['location'] = location
+                
            if item.get("entities"):
                if item['entities'].get("media"):
                    for med in  item['entities'].get("media"):
                        output_format['type'] = med['type']
-                       print(med)
 
                        if med['type'] == "photo":
                            print("entered photo")
@@ -105,7 +111,6 @@ class XScraper:
                if item['quoted_status'].get("entities"):
                    for med in  item['quoted_status']['entities']['media']:
                        output_format['type'] = med['type']
-                       print(med)
 
                        if med['type'] == "photo":
                            print("entered photo")
@@ -147,20 +152,22 @@ class XScraper:
 
 if __name__ == "__main__":
     # Example usage of the XScraper class
-
+    import json
     # Initialize the scraper with your Apify API token
     api_token = os.getenv("APIFY_API_KEY")
     scraper = XScraper(api_token)
 
     # Specify the Twitter handle and the maximum number of tweets to scrape
     twitter_handle = 'elonmusk'
-    max_tweets = 100
+    max_n = 10
 
     # Scrape tweets
-    tweets = scraper.scrape_tweets(twitter_handle, max_tweets)
+    tweets = scraper.scrape_tweets(twitter_handle, max_n)
 
     # Check if tweets were successfully retrieved
     if tweets:
         print(tweets)
+        with open("x_output_2.json", "w+") as f:
+                json.dump(tweets, f)
     else:
         print("No tweets were retrieved.")
