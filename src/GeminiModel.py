@@ -142,9 +142,13 @@ class GeminiRunnerClass:
             raise HTTPException(status_code=500, detail="Error fetching Gemini response")
 if __name__ =="__main__":
     gem = GeminiRunnerClass()
-    prompt = "You are an expert in delivering quality image captions for the given images,you describe details of of what the person in the image is doing and try to describe his personality traits , interest areas and experiences in a story limit your response to a single line per image"
+    prompt = "You are an expert in delivering quality image captions for the given images,you describe details of of what the person in the image is doing and try to describe his personality traits, interest areas and experiences in a story form. limit your response to a single line per image and separate image stories with a single new line character"
+
+    prompt_2 = "You are an expert in understanding human behavoir, A person has posted the following images on different social media handles, write a one liner sentence of what do you understand from the given image including the facts like his personality  traits, interest areas and experiences in a story form limit your response to a single line per image and separate image stories with a single new line character.strictly Do not rank images calling them first image, second image, final image etc. Just return the image intepretations in one liner do not summarize them at last"
+
+    prompt_3 = "Craft a compelling narrative around the individual's personality, interests, and experiences based on the images shared on various social media platforms. Uncover layers of their character traits, passions, and life journey from the visual storytelling presented. Remember to intrigue and engage with concise, impactful observations. separate image discriptions with a new line and do not rank images like the first, the second, the third , finally etc."
     with open("output.json", "r") as f:
         data = json.loads(f.read())
-    output = asyncio.run(gem.get_gemini_response_image(prompt, data))
+    output = asyncio.run(gem.get_gemini_response_image(prompt_3, data))
     print(output)
 
