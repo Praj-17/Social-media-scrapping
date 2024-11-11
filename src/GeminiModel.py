@@ -12,6 +12,7 @@ import numpy as np
 import time
 import json
 import asyncio
+from .models import ImageDescriptions
 load_dotenv()
 
 register_heif_opener()
@@ -86,43 +87,60 @@ class GeminiRunnerClass:
             # current_app.logger.error(f"Error fetching Gemini response: {e}")
             print(f"Error fetching Gemini response: {e}")
             raise HTTPException(status_code=500, detail="Error fetching Gemini response")
-    async def process_image_parts_from_social_media(self, contents):
+    async def process_image_parts_from_social_media(self, all_images):
         ans = []
-        for i in contents:
-            if i.get("type"):
-                type = i.get("type")
-                if type.lower() == "photo":
-                    if i.get("content_urls"):
-                        contents = i.get("content_urls")
-                        for i in contents:
-                            content_url = {"data": i}
-                            ans.append(content_url)
+        for i in all_images:
+            if i.get("content_urls"):
+                contents = i.get("content_urls")
+                for url in contents:
+                    content_url = {"data": url,"social_media":i['social_media'], "timestamp":i['timestamp'], "location":i['location'], "type":i['type']  }
+                    ans.append(content_url)
+        print(len(ans))
+        for i in ans:
+            print(i)
+            print("")
         return ans
+    def process_response_text(self, response_text, ):
+        
+        pass
+    def format_prompt(self, prompt):
+        to_append = """\n Use this JSON schema:
+        Description: str
+        Return: list[Description] 
+        """
+        return prompt  + to_append
 
     async def get_gemini_response_image(self, input_text: str, image_parts_list: list) -> str:
+        # input_text = self.format_prompt(input_text)
         self.model = GenerativeModel(os.getenv('GEMINI_IMAGE_MODEL_NAME'))
         images = []
         image_parts_list = await self.process_image_parts_from_social_media(image_parts_list)
         for image_part in image_parts_list:
-            file_path = download_file(image_part['data'])
-            img = Image.open(file_path)
-            img_arr = np.array(img)
-            image_array = img_arr.astype(np.uint8)  # Ensure array is in uint8 format
-            # Convert the NumPy array back to a PIL Image
-            image = Image.fromarray(image_array)
-            images.append(image)
-            img.close()
-            os.remove(file_path)
+            if image_part['type'].lower() == "photo":
+                file_path = download_file(image_part['data'])
+                img = Image.open(file_path)
+                img_arr = np.array(img)
+                image_array = img_arr.astype(np.uint8)  # Ensure array is in uint8 format
+                # Convert the NumPy array back to a PIL Image
+                image = Image.fromarray(image_array)
+                images.append(image)
+                img.close()
+                os.remove(file_path)
 
 
         try:
-            response = self.model.generate_content([input_text] + images)
+            responses = []
+            for image in images:
+                response = self.model.generate_content([input_text] + images, generation_config=genai.GenerationConfig(
+        response_mime_type="application/json", response_schema=ImageDescriptions
+    ))
+                responses.append(response.text)
             #print("Response Revieved", response) 
-            return response.text
+            return responses
         except Exception as e:
             # current_app.logger.error(f"Error fetching Gemini response: {e}")
             #print(f"Error fetching Gemini response: {e}")
-            raise HTTPException(status_code=500, detail="Error fetching Gemini response")
+            raise HTTPException(status_code=500, detail=f"Error fetching Gemini response: {str(e)}")
         
     async def get_gemini_response_audio(self, input_prompt, audio_data: list) -> str:
         audio_data = audio_data[0]
@@ -146,7 +164,14 @@ if __name__ =="__main__":
 
     prompt_2 = "You are an expert in understanding human behavoir, A person has posted the following images on different social media handles, write a one liner sentence of what do you understand from the given image including the facts like his personality  traits, interest areas and experiences in a story form limit your response to a single line per image and separate image stories with a single new line character.strictly Do not rank images calling them first image, second image, final image etc. Just return the image intepretations in one liner do not summarize them at last"
 
-    prompt_3 = "Craft a compelling narrative around the individual's personality, interests, and experiences based on the images shared on various social media platforms. Uncover layers of their character traits, passions, and life journey from the visual storytelling presented. Remember to intrigue and engage with concise, impactful observations. separate image discriptions with a new line and do not rank images like the first, the second, the third , finally etc."
+    prompt_3 = """Craft a compelling narrative around the individual's personality, interests, and experiences based on the images shared on various social media platforms. Uncover layers of their character traits, passions, and life journey from the visual storytelling presented. Remember to intrigue and engage with concise, impactful observations. strictly follow the following  in the backticks for all the images
+    ```
+    image 1: image_one_story \n
+    ```
+
+
+    
+    """
     with open("output.json", "r") as f:
         data = json.loads(f.read())
     output = asyncio.run(gem.get_gemini_response_image(prompt_3, data))

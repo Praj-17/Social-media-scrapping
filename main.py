@@ -91,10 +91,21 @@ if __name__ == "__main__":
         # "linkedin_username": "prajwal-waykos",
         "x_username": "elonmusk"
     }
-    data = sm.scrape_all_social_media(**handles)
+    # data = sm.scrape_all_social_media(**handles)
+    with open("output.json", "r") as f:
+        data = json.loads(f.read())
+    print("Total Images", len(data))
 
     gem = GeminiRunnerClass()
-    prompt = "You are an expert in delivering quality image captions for the given images,you describe details of of what the person in the image is doing and try to describe his personality traits , interest areas and experiences in a story "
-
-    output = asyncio.run(gem.get_gemini_response_image(prompt, data))
-    print(output)
+    prompt = """Craft a compelling narrative around the individual's personality, interests, and experiences based on the images shared on various social media platforms. Uncover layers of their character traits, passions, and life journey from the visual storytelling presented. Remember to intrigue and engage with concise, impactful observations in a Json format. 
+    """
+    # check if there are any images in the data
+    to_process = []
+    for i in data:
+        if i['type'].lower() == "photo":
+            to_process.append(i)
+    if to_process:
+        output = asyncio.run(gem.get_gemini_response_image(prompt, to_process))
+        print(output)
+    else:
+        print("No Images to process")
