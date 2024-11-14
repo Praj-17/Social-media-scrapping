@@ -134,7 +134,9 @@ class GeminiRunnerClass:
                 response = self.model.generate_content([input_text] + images, generation_config=genai.GenerationConfig(
         response_mime_type="application/json", response_schema=ImageDescriptions
     ))
-                responses.append(response.text)
+                responses.append(json.loads(response.text).get("descriptions"))
+            
+            print(len(responses))
             #print("Response Revieved", response) 
             return responses
         except Exception as e:
