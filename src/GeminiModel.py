@@ -95,10 +95,6 @@ class GeminiRunnerClass:
                 for url in contents:
                     content_url = {"data": url,"social_media":i['social_media'], "timestamp":i['timestamp'], "location":i['location'], "type":i['type']  }
                     ans.append(content_url)
-        print(len(ans))
-        for i in ans:
-            print(i)
-            print("")
         return ans
     def process_response_text(self, response_text, ):
         
@@ -111,7 +107,6 @@ class GeminiRunnerClass:
         return prompt  + to_append
 
     async def get_gemini_response_image(self, input_text: str, image_parts_list: list) -> str:
-        # input_text = self.format_prompt(input_text)
         self.model = GenerativeModel(os.getenv('GEMINI_IMAGE_MODEL_NAME'))
         images = []
         image_parts_list = await self.process_image_parts_from_social_media(image_parts_list)
@@ -136,7 +131,6 @@ class GeminiRunnerClass:
     ))
                 responses.append(json.loads(response.text).get("descriptions"))
             
-            print(len(responses))
             #print("Response Revieved", response) 
             return responses
         except Exception as e:
